@@ -30,12 +30,17 @@ def package(platform):
         shutil.copy2(ROOT / filename, stage / filename)
     shutil.copytree(ROOT / "docs", stage / "docs", ignore=shutil.ignore_patterns("__pycache__"))
     shutil.copy2(ROOT / "build" / "dependencies.txt", stage / "dependencies.txt")
+    shutil.copytree(ROOT / "build" / "release-licenses", stage / "THIRD_PARTY_LICENSES")
+    third_party = (ROOT / "docs" / "THIRD_PARTY.md").read_text(encoding="utf-8")
+    (stage / "THIRD_PARTY.md").write_text(
+        third_party.replace("](../LICENSE)", "](LICENSE)").replace("](../BUILD.md)", "](BUILD.md)"),
+        encoding="utf-8")
     (stage / "START.txt").write_text(
         "PixelGlitch Studio " + __version__ + "\n\n"
         "macOS: Open PixelGlitchStudio.app.\n"
         "Windows: Extract the entire archive, then open PixelGlitchStudio/PixelGlitchStudio.exe.\n"
         "Linux: Extract the archive, then run ./PixelGlitchStudio/PixelGlitchStudio.\n\n"
-        "Developer build: no developer certificate or notarization.\n"
+        "Unsigned application: see docs/INSTALLATION.md for startup instructions.\n"
         "Copyright (c) 2026 Florian Sawade. GPL-3.0-only; see LICENSE.\n"
         "Third-party components retain their own licenses.\n",
         encoding="utf-8",

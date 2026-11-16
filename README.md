@@ -11,7 +11,7 @@ Die Verarbeitung läuft lokal auf deinem Rechner, ohne Cloud oder Telemetrie.
 
 ![PixelGlitch Studio: dunkle Oberfläche mit Bildvorschau, Effekt-Ebenen und Parametern](docs/images/screenshot.png)
 
-[Installation](#installation-und-start) · [Erste Schritte](#erste-schritte) ·
+[Downloads](https://github.com/FlorianSawade/PixelGlitchStudio/releases) · [Installation](#installation-und-start) · [Erste Schritte](#erste-schritte) ·
 [Beispiele](#beispiele) · [Versionshistorie](CHANGELOG.md) · [App bauen](BUILD.md) ·
 [Lizenz](#lizenz)
 
@@ -50,8 +50,26 @@ Die Bilder und der Screenshot lassen sich mit
 
 ## Installation und Start
 
-Der Einstieg erfolgt derzeit über den Quellcode. Diese Anleitung setzt keine
-fertigen Download-Pakete voraus.
+### Desktop-App herunterladen
+
+Fertige App-Pakete werden unter [Releases](https://github.com/FlorianSawade/PixelGlitchStudio/releases)
+bereitgestellt. Sie enthalten Python und die benötigten Bibliotheken. Wähle
+das Paket für dein Betriebssystem und deine Prozessorarchitektur und entpacke
+es vollständig. Falls noch keine veröffentlichte Release angezeigt wird,
+verwende die Installation aus dem Quellcode weiter unten.
+
+| System | Paket |
+| --- | --- |
+| macOS · Apple Silicon | `macos-arm64.zip` |
+| macOS · Intel | `macos-x86_64.zip` |
+| Windows · 64 Bit | `windows-x86_64.zip` |
+| Linux · 64 Bit | `linux-x86_64.tar.gz` |
+
+Die ersten Pakete sind nicht mit Entwicklerzertifikaten signiert.
+[Installation, Systemvoraussetzungen und Prüfsummen](docs/INSTALLATION.md)
+erklärt den Start auf den einzelnen Plattformen.
+
+### Aus dem Quellcode starten
 
 ### Voraussetzungen und Plattformen
 
@@ -59,8 +77,9 @@ Die Anwendung ist für **macOS, Windows und Linux** ausgelegt. Für den Start
 benötigst du Python mit `pip` und die Abhängigkeiten aus
 [`requirements.txt`](requirements.txt). Für eine neue Umgebung empfehlen wir
 **Python 3.12**. Die erzeugten README-Bilder wurden unter **macOS auf Apple
-Silicon mit Python 3.14** erstellt; eine vollständige Prüfung auf Windows und
-Linux ist damit nicht abgedeckt.
+Silicon mit Python 3.14** erstellt. Der Release-Workflow prüft Quellcode und
+gepackte Anwendungen zusätzlich auf den in [BUILD.md](BUILD.md) genannten
+Referenzsystemen; die Ergebnisse stehen im jeweiligen Actions-Lauf.
 
 ### macOS / Linux
 

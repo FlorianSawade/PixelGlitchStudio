@@ -15,8 +15,38 @@ concurrency:
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 jobs:
+  materials:
+    name: Prepare upstream sources and licenses
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Download source archives and license notices
+        run: python .github/scripts/prepare_release_materials.py
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-sources
+          path: build/release-sources/*
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-licenses
+          path: build/release-licenses/
+          if-no-files-found: error
+          retention-days: 14
+
   build:
     name: Test / ${{ matrix.platform }}
+    needs: materials
+    if: ${{ !cancelled() && (needs.materials.result == 'success' || needs.materials.result == 'skipped') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 35
     strategy:
@@ -32,7 +62,7 @@ jobs:
           - os: windows-2022
             platform: windows-x86_64
             architecture: AMD64
-          - os: ubuntu-22.04
+          - os: ubuntu-24.04
             platform: linux-x86_64
             architecture: x86_64
     defaults:
@@ -49,14 +79,16 @@ jobs:
         with:
           python-version: '3.12'
           cache: pip
-          cache-dependency-path: requirements.txt
+          cache-dependency-path: |
+            requirements.txt
+            requirements-release.txt
       - name: Install Linux Qt libraries
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libegl1 libgl1 libxkbcommon-x11-0 libdbus-1-3 libxcb-cursor0
       - name: Install dependencies
-        run: python -m pip install -r requirements.txt
+        run: python -m pip install -r requirements-release.txt
       - name: Check architecture and version tag
         env:
           EXPECTED_ARCH: ${{ matrix.architecture }}
@@ -78,14 +110,23 @@ jobs:
         run: python test_gui.py
       - name: Test UI features
         run: python test_ui_features.py
-      - name: Install build tools
+      - name: Download upstream license notices
         if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
-        run: python -m pip install 'pyinstaller>=6.16,<7'
+        uses: actions/download-artifact@v8
+        with:
+          name: release-licenses
+          path: build/release-licenses
+      - name: Collect runtime license notices
+        if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
+        run: python .github/scripts/collect_runtime_licenses.py
       - name: Build app
         if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
         run: |
           python build_app.py
           python -m pip freeze > build/dependencies.txt
+      - name: Test packaged app startup, rendering and export
+        if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
+        run: python .github/scripts/smoke_test_bundle.py
       - name: Package app
         if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
         env:
@@ -103,9 +144,9 @@ jobs:
 
   release:
     name: Prepare release draft
-    needs: build
+    needs: [materials, build]
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: write
@@ -118,6 +159,11 @@ jobs:
           pattern: PixelGlitchStudio-*
           path: packages
           merge-multiple: true
+      - name: Include exact upstream source archives
+        uses: actions/download-artifact@v8
+        with:
+          name: release-sources
+          path: packages
       - name: Include matching project source
         env:
           TAG_NAME: ${{ github.ref_name }}

@@ -21,7 +21,7 @@ Für die Plattform, auf der du gerade sitzt:
 cd PixelGlitchStudio
 python3 -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
-pip install -r requirements.txt pyinstaller
+python -m pip install -r requirements-release.txt
 python build_app.py
 ```
 
@@ -80,7 +80,7 @@ verwendet Python 3.12 auf vier Runnern:
 | macOS Apple Silicon | `macos-15` | arm64 |
 | macOS Intel | `macos-15-intel` | x86_64 |
 | Windows | `windows-2022` | x86_64 |
-| Linux | `ubuntu-22.04` | x86_64 |
+| Linux | `ubuntu-24.04` | x86_64 |
 
 Bei Pushes auf `main` und Pull Requests laufen alle drei Testsuiten auf diesen
 vier Runnern. Bei einem manuellen Start oder einem Versions-Tag baut jeder
@@ -98,7 +98,9 @@ Fehler auf einer Plattform verhindern nicht die Diagnose der anderen.
 Der Workflow führt vor jedem Bauen alle Testsuiten aus (Engine und Oberfläche,
 letztere headless über `QT_QPA_PLATFORM=offscreen`). Nur bei erfolgreichen
 Tests auf dem jeweiligen Runner entsteht dort ein App-Paket. Der Release-Job
-startet erst, wenn alle vier Runner erfolgreich abgeschlossen sind.
+startet erst, wenn alle vier Runner erfolgreich abgeschlossen sind. Nach dem
+Build muss außerdem die tatsächlich gepackte Anwendung mit `--smoke-test`
+starten, ein Bild rendern und erfolgreich exportieren.
 
 Wenn alle vier Plattformen erfolgreich sind, legt ein gepushter Versions-Tag
 zusätzlich einen **Release-Entwurf** mit allen Paketen und einem Archiv des
@@ -116,17 +118,24 @@ Repository-Inhalte über den eingebauten `GITHUB_TOKEN`. Bei einem erneuten Lauf
 werden nur Assets eines bestehenden Entwurfs ersetzt; ein bereits
 veröffentlichter Release wird nicht überschrieben.
 
-Die Archive enthalten die App, GPLv3-Lizenz, Dokumentation, Startanweisungen und
+Die Archive enthalten die App, GPLv3-Lizenz, Drittanbieter-Lizenztexte, Dokumentation, Startanweisungen und
 die konkret installierten Abhängigkeiten (`dependencies.txt`). macOS-ZIPs
 werden mit `ditto` erstellt, Linux-Archive als `.tar.gz`, damit Symlinks und
 Ausführungsrechte erhalten bleiben. Windows erhält eine `.zip` mit dem
 vollständigen App-Ordner.
 
-Vor Veröffentlichung des Release-Entwurfs die Pakete auf den Zielsystemen
-starten, Versionshinweise ergänzen und Lizenztexte sowie Quellcodebereitstellung
-der mitgelieferten Drittanbieter-Komponenten vervollständigen. Insbesondere das
-beigelegte Projektquellcode-Archiv enthält nicht automatisch den Quellcode von
-Qt und anderen Bibliotheken.
+Der Job `materials` lädt die zu den festgelegten Release-Versionen passenden
+Qt-/PySide-Quellen und weitere Upstream-Quellpakete herunter. Er sammelt deren
+Lizenztexte; jeder Build ergänzt die Texte aus seinen installierten Paketen
+und die Lizenz seiner CPython-Version. Die App-Archive enthalten diese Texte
+unter `THIRD_PARTY_LICENSES`. Der Release-Entwurf erhält neben dem
+Projektquellcode auch die Upstream-Quellarchive mit Herkunftsmanifest und
+Prüfsummen. Details: [Drittanbieter](docs/THIRD_PARTY.md).
+
+Vor der Veröffentlichung die automatischen Testergebnisse kontrollieren und
+die normale interaktive Bedienung auf den verfügbaren Zielsystemen prüfen.
+Die automatischen Start-, Render- und Exporttests laufen ohne Bildschirm und
+ersetzen keine vollständige manuelle Prüfung der Oberfläche.
 
 Für Standard-Runner öffentlicher Repositories stellt GitHub kostenlose
 Actions-Läufe bereit. Bei privaten Repositories gelten die Kontingente und

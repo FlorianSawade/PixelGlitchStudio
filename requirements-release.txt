@@ -1,0 +1,8 @@
+# Versions used for the v2.9.1 desktop packages and their source/license bundles.
+-r requirements.txt
+numpy==2.5.5
+Pillow==13.0.0
+PySide6==6.12.0
+pyobjc-core==13.0; sys_platform == "darwin"
+pyobjc-framework-Cocoa==13.0; sys_platform == "darwin"
+pyinstaller==6.22.3
