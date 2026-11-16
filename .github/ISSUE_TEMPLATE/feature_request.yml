@@ -1,0 +1,23 @@
+name: Funktion vorschlagen
+description: Einen konkreten Anwendungsfall oder eine Verbesserung vorschlagen.
+title: "[Wunsch] "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Was möchtest du erreichen?
+      description: Beschreibe deinen Anwendungsfall und wo dir die App dabei noch im Weg steht.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Dein Vorschlag
+      description: Wie könnte die Funktion aus deiner Sicht arbeiten?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativen oder Beispiele
+      description: Gibt es einen bisherigen Umweg oder ein Bildbeispiel für das gewünschte Ergebnis?

@@ -26,7 +26,8 @@ def package(platform):
     if not executable.is_file():
         raise FileNotFoundError(f"Build missing: {executable}")
     shutil.copytree(source, stage / app_name, symlinks=True)
-    for filename in ("LICENSE", "README.md", "CHANGELOG.md", "BUILD.md"):
+    for filename in ("LICENSE", "README.md", "CHANGELOG.md", "BUILD.md", "requirements.txt",
+                     "requirements-release.txt", "requirements-release-lock.txt"):
         shutil.copy2(ROOT / filename, stage / filename)
     shutil.copytree(ROOT / "docs", stage / "docs", ignore=shutil.ignore_patterns("__pycache__"))
     shutil.copy2(ROOT / "build" / "dependencies.txt", stage / "dependencies.txt")

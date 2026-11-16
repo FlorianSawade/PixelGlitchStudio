@@ -23,7 +23,9 @@ werden, um die App zu benutzen.
 als Release-Assets im selben Repository wie die App-Pakete, unabhängig von
 der Verfügbarkeit der Original-Downloadserver.
 
-Für die Release werden die Versionen in `requirements-release.txt` verwendet.
+Für die Release werden die direkten Versionen in `requirements-release.txt`
+und die vollständigen Paketversionen samt Hashes in
+`requirements-release-lock.txt` verwendet.
 Der Build verändert Qt und PySide nicht. Die Archive enthalten deren
 Build-Dateien, Hinweise und ursprüngliche Drittanbieter-Lizenztexte.
 `THIRD_PARTY_LICENSES` sammelt diese Texte, ergänzt um die Lizenzdateien der
@@ -36,7 +38,7 @@ Den passenden Projektquellcode aus der Release entpacken, eine Python-3.12-
 Umgebung anlegen und die Versionen aus `requirements-release.txt` installieren:
 
 ```bash
-python -m pip install -r requirements-release.txt
+python -m pip install --require-hashes --only-binary=:all: -r requirements-release-lock.txt
 python build_app.py
 ```
 

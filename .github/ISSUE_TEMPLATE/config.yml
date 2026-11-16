@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Sicherheitslücke privat melden
+    url: https://github.com/FlorianSawade/PixelGlitchStudio/security/advisories/new
+    about: Bitte keine Sicherheitslücken oder Zugangsdaten in öffentlichen Issues veröffentlichen.
+  - name: Installation und Start
+    url: https://github.com/FlorianSawade/PixelGlitchStudio/blob/main/docs/INSTALLATION.md
+    about: App-Pakete auswählen, starten und Downloads prüfen.

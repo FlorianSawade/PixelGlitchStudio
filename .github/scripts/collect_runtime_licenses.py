@@ -8,6 +8,10 @@ import urllib.request
 ROOT = Path(__file__).resolve().parents[2]
 output = ROOT / 'build/release-licenses'
 output.mkdir(parents=True, exist_ok=True)
+# A new interpreter/environment must not retain notices from an earlier build.
+shutil.rmtree(output / 'installed-packages', ignore_errors=True)
+for previous in output.glob('Python-*-LICENSE.txt'):
+    previous.unlink()
 for dist in distributions():
     for item in dist.files or []:
         name = item.name.lower()

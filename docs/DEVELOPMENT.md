@@ -54,3 +54,34 @@ die echte Qt-Oberfläche im Offscreen-Modus auf. Einstellungen, Projekte und
 Presets der Vorschau werden getrennt von den regulären App-Daten gehalten.
 Das Erscheinungsbild des Screenshots kann je nach Plattform und Qt-Version
 abweichen. Die Bilder liegen anschließend in `docs/images/`.
+
+## Release-Abhängigkeiten aktualisieren
+
+Die direkten Release-Versionen stehen in `requirements-release.txt`. Ändere
+sie gezielt und erzeuge anschließend die vollständige Lock-Datei mit uv:
+
+```bash
+python -m pip install uv==0.13.8
+uv pip compile requirements-release.txt --universal --python-version 3.12 --generate-hashes --no-header --output-file requirements-release-lock.txt
+python .github/scripts/check_release_lock.py
+```
+
+Die Lock-Datei gilt für die vier Release-Ziele und fixiert auch indirekte
+Abhängigkeiten mit Hashes. Im CI erfolgt die Installation mit `pip`, uv wird
+dort nicht benötigt. Nach einem Update die Tests und App-Builds prüfen;
+Qt-/PySide-Quellen und Lizenzbeilagen müssen zu den neuen Versionen passen.
+Dependabot schlägt wöchentlich Aktualisierungen für Python-Pakete und GitHub
+Actions vor. Die Release-Pins und die Lock-Datei gehören zusammen in dieselbe
+Änderung; die CI-Konsistenzprüfung erkennt abweichende direkte Versionen.
+
+## GitHub-Social-Preview erzeugen
+
+```bash
+python docs/generate_social_preview.py
+```
+
+Das Skript verwendet das vorhandene App-Logo und den echten README-Screenshot.
+Das PNG liegt unter `docs/images/social-preview.png` (1280 × 640 Pixel, unter
+1 MB). Zum Hinterlegen auf GitHub unter **Settings → General → Social preview
+→ Edit → Upload an image…** hochladen. Das Einchecken der Datei allein setzt
+noch kein Social-Preview-Bild in den Repository-Einstellungen.

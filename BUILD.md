@@ -19,11 +19,29 @@ Für die Plattform, auf der du gerade sitzt:
 
 ```bash
 cd PixelGlitchStudio
-python3 -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
-python -m pip install -r requirements-release.txt
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install --require-hashes --only-binary=:all: -r requirements-release-lock.txt
 python build_app.py
 ```
+
+Unter Windows (PowerShell), mit Python 3.12:
+
+```powershell
+cd PixelGlitchStudio
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --require-hashes --only-binary=:all: -r requirements-release-lock.txt
+.\.venv\Scripts\python.exe build_app.py
+```
+
+`requirements-release.txt` legt die direkten Release-Versionen fest;
+`requirements-release-lock.txt` fixiert zusätzlich die indirekten Pakete und
+die erlaubten SHA-256-Hashes. Der Workflow installiert ausschließlich aus der
+Lock-Datei und bricht ab, wenn die direkten Versionen nicht dazu passen.
+Ein identischer Paketstand allein garantiert keine byte-identischen Programme:
+Python-Patchversion, Betriebssystem und Build-Werkzeuge außerhalb von Python
+können das Ergebnis weiterhin beeinflussen. Der Workflow dokumentiert seine
+installierten Pakete in `dependencies.txt`.
 
 Das Ergebnis liegt in `dist/`:
 
@@ -42,12 +60,13 @@ Das App-Icon wird beim Bauen aus `pixelglitch/branding.py` gerendert
 (PNG, ICO und ICNS), es liegen also keine Bilddateien im Projekt herum.
 
 ### Hinweise für macOS
-Die App ist **nicht signiert und nicht notarisiert**. Beim ersten Start meldet
-Gatekeeper deshalb, sie stamme von einem unbekannten Entwickler. Abhilfe:
-Rechtsklick auf die App → *Öffnen* → im Dialog nochmals *Öffnen*. Danach
-startet sie normal per Doppelklick. Wer die App weitergeben will, braucht ein
-Apple-Developer-Zertifikat (99 $/Jahr) und muss sie signieren und notarisieren;
-sonst müssen alle Empfänger denselben Rechtsklick-Trick anwenden.
+Die App ist **nicht mit einem Entwicklerzertifikat signiert und nicht
+notarisiert**. Aktuelle macOS-Versionen können den Start deshalb blockieren.
+Die Freigabe erfolgt nach einem Startversuch gegebenenfalls unter
+**Systemeinstellungen → Datenschutz & Sicherheit**. Details stehen in der
+[Installationsanleitung](docs/INSTALLATION.md#macos). Für eine regulär signierte
+und notarisierte Weitergabe sind ein passendes Entwicklerzertifikat und die
+Apple-Notarisierung nötig.
 
 Eine auf Apple Silicon gebaute App läuft nicht auf Intel-Macs und umgekehrt.
 Für beides baut man zweimal — oder nutzt Weg 2.
@@ -65,7 +84,7 @@ unterstützen will. Außerdem braucht Qt einige Systembibliotheken; auf einem
 nackten Server hilft:
 
 ```bash
-sudo apt install libgl1 libegl1 libxkbcommon-x11-0 libdbus-1-3
+sudo apt install libgl1 libegl1 libxkbcommon-x11-0 libdbus-1-3 libxcb-cursor0
 ```
 
 ---
@@ -145,8 +164,8 @@ Preise deines GitHub-Plans.
 
 ## Größe und Startverhalten
 
-Ein Bündel ist rund **200–250 MB** entpackt (komprimiert 80–140 MB) — das ist
-für Qt-Anwendungen normal, weil der komplette Qt-Werkzeugkasten mitkommt. Wer
+Die Paketgröße hängt von Plattform und Bibliotheksversionen ab. Python, Qt
+und native Bibliotheken sind enthalten und machen den größten Teil aus. Wer
 das drücken will, kann in `build_app.py` gezielt ungenutzte Qt-Module
 ausschließen, etwa:
 

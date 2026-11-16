@@ -71,36 +71,43 @@ erklärt den Start auf den einzelnen Plattformen.
 
 ### Aus dem Quellcode starten
 
-### Voraussetzungen und Plattformen
+Verwende **Python 3.12** mit `pip` und Git. Python ist unter
+[python.org](https://www.python.org/downloads/) erhältlich. Die folgenden Befehle
+legen eine eigene Umgebung an, sodass die App-Abhängigkeiten getrennt von
+anderen Python-Projekten bleiben.
 
-Die Anwendung ist für **macOS, Windows und Linux** ausgelegt. Für den Start
-benötigst du Python mit `pip` und die Abhängigkeiten aus
-[`requirements.txt`](requirements.txt). Für eine neue Umgebung empfehlen wir
-**Python 3.12**. Die erzeugten README-Bilder wurden unter **macOS auf Apple
-Silicon mit Python 3.14** erstellt. Der Release-Workflow prüft Quellcode und
-gepackte Anwendungen zusätzlich auf den in [BUILD.md](BUILD.md) genannten
-Referenzsystemen; die Ergebnisse stehen im jeweiligen Actions-Lauf.
+Die Referenzsysteme für die Release sind macOS 15 (Apple Silicon und Intel),
+Windows Server 2022 und Ubuntu 24.04. Die Installation aus dem Quellcode wurde
+lokal auf macOS mit Python 3.12 geprüft. Die automatischen Prüfungen für alle
+vier Ziele stehen im jeweiligen [Actions-Lauf](https://github.com/FlorianSawade/PixelGlitchStudio/actions/workflows/build.yml);
+andere Betriebssystemversionen sind damit nicht automatisch bestätigt.
 
-### macOS / Linux
+#### macOS / Linux
 
 ```bash
 git clone https://github.com/FlorianSawade/PixelGlitchStudio.git
 cd PixelGlitchStudio
-python3 -m venv .venv
+python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
 python run.py
 ```
 
-### Windows (PowerShell)
+#### Windows (PowerShell)
 
 ```powershell
 git clone https://github.com/FlorianSawade/PixelGlitchStudio.git
 cd PixelGlitchStudio
-py -m venv .venv
+py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv\Scripts\python.exe run.py
 ```
+
+Für genau den Python-Paketstand der Release verwende stattdessen
+`python -m pip install --require-hashes --only-binary=:all: -r requirements-release-lock.txt`
+in der aktivierten Umgebung; unter Windows entsprechend
+`.\.venv\Scripts\python.exe -m pip install --require-hashes --only-binary=:all: -r requirements-release-lock.txt`.
+Diese Datei enthält auch die Build-Werkzeuge und die indirekten Abhängigkeiten.
 
 Falls Git nicht installiert ist, kannst du das Repository auch über
 **Code → Download ZIP** herunterladen, entpacken und im entpackten Ordner mit
@@ -150,6 +157,9 @@ Projekt zusammen mit deinen Ergebnissen.
 - [Entwicklung und eigene Effekte](docs/DEVELOPMENT.md): Erweiterung der
   Effekt-Registry. Die Bildverarbeitungs-Engine kann auch ohne GUI verwendet
   werden.
+- [Veröffentlichungsprüfung](docs/PUBLICATION_CHECK.md): geprüfter Stand und verbleibende Schritte.
+- [Mitmachen](CONTRIBUTING.md): Entwicklungsumgebung, Tests und Hinweise für Pull Requests.
+- [Sicherheitsprobleme melden](SECURITY.md): privater Meldeweg für Schwachstellen.
 - [Fehler melden oder Funktionen vorschlagen](https://github.com/FlorianSawade/PixelGlitchStudio/issues):
   Bitte App-Version, Betriebssystem und Schritte zum Nachvollziehen angeben.
 

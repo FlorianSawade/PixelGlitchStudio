@@ -18,3 +18,28 @@ dist/
 
 # macOS
 .DS_Store
+
+# Lokale Konfiguration und Zugangsdaten
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.key
+id_rsa
+id_ed25519
+
+# Lokale Projekte und Ausgaben im Repository-Stamm
+/*.pgsz
+/*.pgs.json
+/PixelGlitchProjects/
+/exports/
+/batch-output/
+
+# Lokale Prüfberichte und Python-Werkzeuge
+.coverage
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+pip-audit-report*.json
+gitleaks-report*.json
