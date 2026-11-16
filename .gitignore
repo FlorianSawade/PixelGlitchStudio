@@ -1,0 +1,20 @@
+# Virtuelle Umgebung
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# PyInstaller: Ergebnis und die von build_app.py erzeugte .spec
+build/
+dist/
+*.spec
+
+# Editoren
+.idea/
+.vscode/
+
+# macOS
+.DS_Store

@@ -1,0 +1,151 @@
+# Ausführbare Programme bauen
+
+PixelGlitch Studio wird mit **PyInstaller** zu einer eigenständigen Anwendung
+gebündelt. Wichtig vorweg, weil es der häufigste Irrtum ist:
+
+> **PyInstaller kann nicht über Plattformen hinweg bauen.** Eine macOS-`.app`
+> entsteht nur auf einem Mac, eine Windows-`.exe` nur unter Windows, ein
+> Linux-Binary nur unter Linux. Es gibt dafür keinen Schalter — das Bündel
+> enthält den Python-Interpreter und die Qt-Bibliotheken des jeweiligen
+> Betriebssystems.
+
+Daraus ergeben sich zwei Wege.
+
+---
+
+## Weg 1 — Auf dem eigenen Rechner bauen
+
+Für die Plattform, auf der du gerade sitzt:
+
+```bash
+cd PixelGlitchStudio
+python3 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -r requirements.txt pyinstaller
+python build_app.py
+```
+
+Das Ergebnis liegt in `dist/`:
+
+| System  | Ergebnis                              |
+|---------|---------------------------------------|
+| macOS   | `dist/PixelGlitchStudio.app`          |
+| Windows | `dist/PixelGlitchStudio/PixelGlitchStudio.exe` |
+| Linux   | `dist/PixelGlitchStudio/PixelGlitchStudio`     |
+
+Optionen: `--onefile` packt alles in eine einzige Datei (bequemer zu
+verschicken, startet aber spürbar langsamer, weil sie sich bei jedem Start
+entpackt). `--console` lässt ein Terminalfenster mitlaufen — nützlich, wenn
+die App startet und sofort wieder verschwindet.
+
+Das App-Icon wird beim Bauen aus `pixelglitch/branding.py` gerendert
+(PNG, ICO und ICNS), es liegen also keine Bilddateien im Projekt herum.
+
+### Hinweise für macOS
+Die App ist **nicht signiert und nicht notarisiert**. Beim ersten Start meldet
+Gatekeeper deshalb, sie stamme von einem unbekannten Entwickler. Abhilfe:
+Rechtsklick auf die App → *Öffnen* → im Dialog nochmals *Öffnen*. Danach
+startet sie normal per Doppelklick. Wer die App weitergeben will, braucht ein
+Apple-Developer-Zertifikat (99 $/Jahr) und muss sie signieren und notarisieren;
+sonst müssen alle Empfänger denselben Rechtsklick-Trick anwenden.
+
+Eine auf Apple Silicon gebaute App läuft nicht auf Intel-Macs und umgekehrt.
+Für beides baut man zweimal — oder nutzt Weg 2.
+
+### Hinweise für Windows
+Der SmartScreen-Filter warnt bei unsignierten Programmen („Windows hat den
+Start einer unbekannten App verhindert"). *Weitere Informationen* →
+*Trotzdem ausführen*. Auch hier hilft dauerhaft nur ein Code-Signing-Zertifikat.
+
+### Hinweise für Linux
+Das Bündel ist an die glibc-Version des Build-Systems gebunden: Ein auf
+Ubuntu 24.04 gebautes Programm läuft **nicht** auf Ubuntu 22.04 (umgekehrt
+schon). Deshalb möglichst auf der ältesten Distribution bauen, die man
+unterstützen will. Außerdem braucht Qt einige Systembibliotheken; auf einem
+nackten Server hilft:
+
+```bash
+sudo apt install libgl1 libegl1 libxkbcommon-x11-0 libdbus-1-3
+```
+
+---
+
+## Weg 2 — Alle drei Plattformen automatisch bauen lassen
+
+Der Workflow [`.github/workflows/build.yml`](.github/workflows/build.yml)
+verwendet Python 3.12 auf vier Runnern:
+
+| Paket | Runner | Architektur |
+| --- | --- | --- |
+| macOS Apple Silicon | `macos-15` | arm64 |
+| macOS Intel | `macos-15-intel` | x86_64 |
+| Windows | `windows-2022` | x86_64 |
+| Linux | `ubuntu-22.04` | x86_64 |
+
+Bei Pushes auf `main` und Pull Requests laufen alle drei Testsuiten auf diesen
+vier Runnern. Bei einem manuellen Start oder einem Versions-Tag baut jeder
+Runner nach seinen erfolgreichen Tests zusätzlich seine Standalone-App.
+Fehler auf einer Plattform verhindern nicht die Diagnose der anderen.
+
+1. Projekt in ein GitHub-Repository legen (privat genügt).
+2. Reiter **Actions** öffnen, Workflow **Build apps** wählen,
+   **Run workflow** klicken.
+3. Nach erfolgreichem Lauf liegen die Pakete unter **Artifacts** zum
+   Herunterladen bereit (Aufbewahrung: 14 Tage). Die Artifact-ZIP enthält das
+   eigentliche App-Archiv und eine SHA-256-Prüfsummendatei. Zum Starten auch
+   das innere Archiv vollständig entpacken.
+
+Der Workflow führt vor jedem Bauen alle Testsuiten aus (Engine und Oberfläche,
+letztere headless über `QT_QPA_PLATFORM=offscreen`). Nur bei erfolgreichen
+Tests auf dem jeweiligen Runner entsteht dort ein App-Paket. Der Release-Job
+startet erst, wenn alle vier Runner erfolgreich abgeschlossen sind.
+
+Wenn alle vier Plattformen erfolgreich sind, legt ein gepushter Versions-Tag
+zusätzlich einen **Release-Entwurf** mit allen Paketen und einem Archiv des
+zugehörigen Projektquellcodes an. Er wird nicht automatisch veröffentlicht.
+Der Tag muss exakt zu `pixelglitch.__version__` passen:
+
+```bash
+git tag v2.9.1
+git push origin v2.9.1
+```
+
+Der Workflow braucht keine selbst hinterlegten Secrets. Tests und Builds
+haben nur Leserechte; ausschließlich der Release-Job erhält Schreibrechte für
+Repository-Inhalte über den eingebauten `GITHUB_TOKEN`. Bei einem erneuten Lauf
+werden nur Assets eines bestehenden Entwurfs ersetzt; ein bereits
+veröffentlichter Release wird nicht überschrieben.
+
+Die Archive enthalten die App, GPLv3-Lizenz, Dokumentation, Startanweisungen und
+die konkret installierten Abhängigkeiten (`dependencies.txt`). macOS-ZIPs
+werden mit `ditto` erstellt, Linux-Archive als `.tar.gz`, damit Symlinks und
+Ausführungsrechte erhalten bleiben. Windows erhält eine `.zip` mit dem
+vollständigen App-Ordner.
+
+Vor Veröffentlichung des Release-Entwurfs die Pakete auf den Zielsystemen
+starten, Versionshinweise ergänzen und Lizenztexte sowie Quellcodebereitstellung
+der mitgelieferten Drittanbieter-Komponenten vervollständigen. Insbesondere das
+beigelegte Projektquellcode-Archiv enthält nicht automatisch den Quellcode von
+Qt und anderen Bibliotheken.
+
+Für Standard-Runner öffentlicher Repositories stellt GitHub kostenlose
+Actions-Läufe bereit. Bei privaten Repositories gelten die Kontingente und
+Preise deines GitHub-Plans.
+
+---
+
+## Größe und Startverhalten
+
+Ein Bündel ist rund **200–250 MB** entpackt (komprimiert 80–140 MB) — das ist
+für Qt-Anwendungen normal, weil der komplette Qt-Werkzeugkasten mitkommt. Wer
+das drücken will, kann in `build_app.py` gezielt ungenutzte Qt-Module
+ausschließen, etwa:
+
+```python
+args += ["--exclude-module", "PySide6.QtWebEngineCore",
+         "--exclude-module", "PySide6.QtQuick",
+         "--exclude-module", "PySide6.Qt3DCore"]
+```
+
+Vor dem Ausliefern dann unbedingt einmal starten und alle Bereiche öffnen —
+ein zu viel ausgeschlossenes Modul fällt sonst erst beim Nutzer auf.
